@@ -9,12 +9,13 @@ use std::io::prelude::{Read, Write};
 
 use std::io::BufWriter;
 
+
 pub mod checksum {
 
     use super::*;
 
     pub fn process_sequence(record: RefRecord, verbose: bool) -> ChecksumResult {
-        let mut md5_hasher_box: Box< = Box::new(Md5::new());
+        let mut md5_hasher_box = Box::new(Md5::new());
         let mut sha512_hasher_box = Box::new(Sha512::new());
         let id = record.id().expect("No ID found for the FASTA record");
         let mut length = 0;
@@ -42,6 +43,24 @@ pub mod checksum {
         pub length: usize,
         pub sha512: String,
         pub md5: String,
+    }
+
+    pub fn get_file_reader(input_name: &str) -> Box<dyn Read> {
+        if input_name == "-" {
+            Box::new(std::io::stdin()) as Box<dyn Read>
+        } else if input_name.ends_with(".gz") {
+            let file = match File::open(input_name) {
+                Err(why) => panic!("couldn't open {}: {}", input_name, why),
+                Ok(file) => file,
+            };
+            Box::new(MultiGzDecoder::new(file)) as Box<dyn Read>
+        } else {
+            let file = match File::open(input_name) {
+                Err(why) => panic!("couldn't open {}: {}", input_name, why),
+                Ok(file) => file,
+            };
+            Box::new(file) as Box<dyn Read>
+        }
     }
 }
 
