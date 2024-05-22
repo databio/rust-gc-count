@@ -14,7 +14,7 @@ pub mod checksum {
     use super::*;
 
     pub fn process_sequence(record: RefRecord, verbose: bool) -> ChecksumResult {
-        let mut md5_hasher_box = Box::new(Md5::new());
+        let mut md5_hasher_box: Box< = Box::new(Md5::new());
         let mut sha512_hasher_box = Box::new(Sha512::new());
         let id = record.id().expect("No ID found for the FASTA record");
         let mut length = 0;
