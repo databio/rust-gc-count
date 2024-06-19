@@ -75,6 +75,8 @@ Then navigate to the `rust-gc-count/bindings` directory and run the following co
 maturin build --release
 ```
 
+(Note: you can also target a different python version with *e.g.* `maturin build --release -i python3.11`)
+
 Then, install the wheel with
 
 ```
