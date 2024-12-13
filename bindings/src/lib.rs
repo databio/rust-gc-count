@@ -12,5 +12,6 @@ use crate::gc_count_utils::write_gc_count_to_file;
 fn gc_count(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(checksum, m)?)?;
     m.add_function(wrap_pyfunction!(write_gc_count_to_file, m)?)?;
+    m.add_function(wrap_pyfunction!(checksumseq::checksum_from_str, m)?)?;
     Ok(())
 }

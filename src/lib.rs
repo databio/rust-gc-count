@@ -9,6 +9,7 @@ use std::io::prelude::{Read, Write};
 
 use std::io::BufWriter;
 
+
 pub mod checksum {
 
     use super::*;
@@ -37,11 +38,60 @@ pub mod checksum {
         }
     }
 
+    
+    /// Processes a given string to compute its MD5 and SHA-512 checksums.
+    ///
+    /// # Arguments
+    ///
+    /// * `string` - The input string to be processed.
+    ///
+    /// # Returns
+    ///
+    /// A `ChecksumResult` containing the ID, length, MD5, and SHA-512 checksums of the input string.
+    pub fn process_str(string: &str) -> ChecksumResult {
+        let mut md5_hasher_box = Box::new(Md5::new());
+        let mut sha512_hasher_box = Box::new(Sha512::new());
+        let mut length = 0;
+        for s in string.as_bytes().chunks(80) {
+            sha512_hasher_box.as_mut().update(s);
+            md5_hasher_box.as_mut().update(s);
+            length += s.len();
+        }
+        let sha512 = base64_url::encode(&sha512_hasher_box.as_mut().finalize_reset()[0..24]);
+        let md5 = format!("{:x}", md5_hasher_box.as_mut().finalize_reset());
+
+        ChecksumResult {
+            id: "string".to_string(),
+            length,
+            sha512,
+            md5,
+        }
+    }
+
+
     pub struct ChecksumResult {
         pub id: String,
         pub length: usize,
         pub sha512: String,
         pub md5: String,
+    }
+
+    pub fn get_file_reader(input_name: &str) -> Box<dyn Read> {
+        if input_name == "-" {
+            Box::new(std::io::stdin()) as Box<dyn Read>
+        } else if input_name.ends_with(".gz") {
+            let file = match File::open(input_name) {
+                Err(why) => panic!("couldn't open {}: {}", input_name, why),
+                Ok(file) => file,
+            };
+            Box::new(MultiGzDecoder::new(file)) as Box<dyn Read>
+        } else {
+            let file = match File::open(input_name) {
+                Err(why) => panic!("couldn't open {}: {}", input_name, why),
+                Ok(file) => file,
+            };
+            Box::new(file) as Box<dyn Read>
+        }
     }
 }
 
@@ -160,5 +210,18 @@ pub mod gc_count {
         if verbose {
             eprintln!("==> Found and processed {} regions.", n);
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_process_str() {
+        let result = super::checksum::process_str("SEQUENCE");
+        assert_eq!(result.id, "string");
+        assert_eq!(result.length, 8);
+        assert_eq!(result.sha512, "XizFQiF5qny4EgPOz3mMaBpxcKOktRbM");
+        assert_eq!(result.md5, "2cb198a10d0a4c217ff4c15e98a97215");
     }
 }
