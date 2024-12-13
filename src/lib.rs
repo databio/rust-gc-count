@@ -38,6 +38,37 @@ pub mod checksum {
         }
     }
 
+    
+    /// Processes a given string to compute its MD5 and SHA-512 checksums.
+    ///
+    /// # Arguments
+    ///
+    /// * `string` - The input string to be processed.
+    ///
+    /// # Returns
+    ///
+    /// A `ChecksumResult` containing the ID, length, MD5, and SHA-512 checksums of the input string.
+    pub fn process_str(string: &str) -> ChecksumResult {
+        let mut md5_hasher_box = Box::new(Md5::new());
+        let mut sha512_hasher_box = Box::new(Sha512::new());
+        let mut length = 0;
+        for s in string.as_bytes().chunks(80) {
+            sha512_hasher_box.as_mut().update(s);
+            md5_hasher_box.as_mut().update(s);
+            length += s.len();
+        }
+        let sha512 = base64_url::encode(&sha512_hasher_box.as_mut().finalize_reset()[0..24]);
+        let md5 = format!("{:x}", md5_hasher_box.as_mut().finalize_reset());
+
+        ChecksumResult {
+            id: "string".to_string(),
+            length,
+            sha512,
+            md5,
+        }
+    }
+
+
     pub struct ChecksumResult {
         pub id: String,
         pub length: usize,
@@ -179,5 +210,18 @@ pub mod gc_count {
         if verbose {
             eprintln!("==> Found and processed {} regions.", n);
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_process_str() {
+        let result = super::checksum::process_str("SEQUENCE");
+        assert_eq!(result.id, "string");
+        assert_eq!(result.length, 8);
+        assert_eq!(result.sha512, "XizFQiF5qny4EgPOz3mMaBpxcKOktRbM");
+        assert_eq!(result.md5, "2cb198a10d0a4c217ff4c15e98a97215");
     }
 }

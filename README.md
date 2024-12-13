@@ -87,6 +87,8 @@ eg: `pip install --force-reinstall target/wheels/gc_count-0.2.1-cp38-cp38-manyli
 
 To use the bindings in Python:
 
+For computing the digest of a FASTA file:
+
 ```python
 from gc_count import checksum
 
@@ -94,6 +96,14 @@ results = checksum("path/to/seq/fasta")
 for result in results:
     print(result.sha512)
 ```
+
+For computing the digest of a string:
+
+```python
+from gc_count import checksum_from_str
+result = checksum_from_str("TCGA")
+```
+
 
 ## Level of code quality
 
