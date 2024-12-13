@@ -72,8 +72,11 @@ pip install maturin
 Then navigate to the `rust-gc-count/bindings` directory and run the following command to install the bindings.
 
 ```bash
+cd bindings
 maturin build --release
 ```
+
+(Note: you can also target a different python version with *e.g.* `maturin build --release -i python3.11`)
 
 Then, install the wheel with
 
